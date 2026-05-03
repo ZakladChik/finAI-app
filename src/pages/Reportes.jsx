@@ -3,10 +3,11 @@ import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { supabase } from '../lib/supabaseClient'
 
-const DEV_MODE = false
+const DEV_MODE = import.meta.env.DEV
 
 export default function Reportes() {
   const { t } = useTranslation()
+  const [loading, setLoading] = useState(true)
   const [balance, setBalance] = useState({
     activos: { corriente: 0, noCorriente: 0, total: 0 },
     pasivos: { corriente: 0, noCorriente: 0, total: 0 },
@@ -16,15 +17,26 @@ export default function Reportes() {
     ingresos: 0, costos: 0, utilidadBruta: 0,
     gastosOperativos: 0, utilidadOperativa: 0, utilidadNeta: 0,
   })
-  const [flujoCaja, setFlujoCaja] = useState({ saldoInicial: 5000, meses: [] })
+  const [flujoCaja, setFlujoCaja] = useState({ saldoInicial: 0, meses: [] })
   const [ratios, setRatios] = useState({
     liquidezCorriente: 0, pruebaAcida: 0, endeudamiento: 0,
     roe: 0, roa: 0, margenNeto: 0,
   })
+  const [totalClientes, setTotalClientes] = useState(0)
 
   useEffect(() => { loadData() }, [])
 
   const loadData = async () => {
+    setLoading(true)
+
+    // Obtener usuario autenticado
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      setLoading(false)
+      return
+    }
+
+    // Modo demo: datos simulados
     if (DEV_MODE) {
       setBalance({ activos: { corriente: 15000, noCorriente: 25000, total: 40000 }, pasivos: { corriente: 5000, noCorriente: 10000, total: 15000 }, patrimonio: 25000 })
       setResultados({ ingresos: 2800, costos: 1200, utilidadBruta: 1600, gastosOperativos: 800, utilidadOperativa: 800, utilidadNeta: 800 })
@@ -37,16 +49,109 @@ export default function Reportes() {
         { mes: 'Octubre 2026', ingresos: 4800, egresos: 2800, saldo: 15100 },
       ]})
       setRatios({ liquidezCorriente: 3.0, pruebaAcida: 2.2, endeudamiento: 37.5, roe: 32.0, roa: 20.0, margenNeto: 28.6 })
+      setTotalClientes(3)
+      setLoading(false)
       return
     }
-    const { data: transacciones } = await supabase.from('transacciones').select('*')
-    if (transacciones) {
+
+    // === MODO REAL: Cargar datos desde Supabase ===
+
+    // 1. Obtener todas las transacciones del usuario
+    const { data: transacciones } = await supabase
+      .from('transacciones')
+      .select('*')
+      .eq('empresa_id', user.id)
+
+    // 2. Obtener total de clientes
+    const { count: clientesCount } = await supabase
+      .from('clientes')
+      .select('*', { count: 'exact', head: true })
+      .eq('empresa_id', user.id)
+
+    if (transacciones && transacciones.length > 0) {
       const ingresos = transacciones.filter(t => t.tipo === 'ingreso').reduce((s, t) => s + t.monto, 0)
       const egresos = transacciones.filter(t => t.tipo === 'egreso').reduce((s, t) => s + t.monto, 0)
-      const bn = ingresos - egresos
-      setBalance({ activos: { corriente: ingresos, noCorriente: 0, total: ingresos }, pasivos: { corriente: egresos, noCorriente: 0, total: egresos }, patrimonio: bn })
-      setResultados({ ingresos, costos: egresos * 0.4, utilidadBruta: ingresos - (egresos * 0.4), gastosOperativos: egresos * 0.6, utilidadOperativa: bn, utilidadNeta: bn })
+      const utilidadNeta = ingresos - egresos
+
+      // Balance General
+      const activosCorriente = ingresos
+      const pasivosCorriente = egresos
+      setBalance({
+        activos: { corriente: activosCorriente, noCorriente: 0, total: activosCorriente },
+        pasivos: { corriente: pasivosCorriente, noCorriente: 0, total: pasivosCorriente },
+        patrimonio: utilidadNeta,
+      })
+
+      // Estado de Resultados
+      setResultados({
+        ingresos,
+        costos: egresos * 0.4,
+        utilidadBruta: ingresos - (egresos * 0.4),
+        gastosOperativos: egresos * 0.6,
+        utilidadOperativa: utilidadNeta,
+        utilidadNeta,
+      })
+
+      // Flujo de Caja Proyectado (6 meses)
+      const mesesNombres = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
+      const hoy = new Date()
+      const saldoInicial = utilidadNeta
+      const flujoMensual = utilidadNeta > 0 ? utilidadNeta * 0.3 : utilidadNeta * 0.1
+      const mesesFlujo = []
+      let saldoAcumulado = saldoInicial
+
+      for (let i = 0; i < 6; i++) {
+        const mesIdx = (hoy.getMonth() + i) % 12
+        const anio = hoy.getFullYear() + Math.floor((hoy.getMonth() + i) / 12)
+        const ingresoEst = ingresos * (1 + (i * 0.05))
+        const egresoEst = egresos * (1 + (i * 0.03))
+        saldoAcumulado += (ingresoEst - egresoEst)
+        mesesFlujo.push({
+          mes: `${mesesNombres[mesIdx]} ${anio}`,
+          ingresos: ingresoEst,
+          egresos: egresoEst,
+          saldo: saldoAcumulado,
+        })
+      }
+      setFlujoCaja({ saldoInicial, meses: mesesFlujo })
+
+      // Ratios Financieros
+      const activoTotal = activosCorriente || 1
+      const pasivoTotal = pasivosCorriente
+      const patrimonio = utilidadNeta || 1
+      const liquidezCorriente = pasivoTotal > 0 ? activosCorriente / pasivoTotal : (activosCorriente > 0 ? 999 : 0)
+      const pruebaAcida = pasivoTotal > 0 ? (activosCorriente * 0.8) / pasivoTotal : (activosCorriente > 0 ? 999 : 0)
+      const endeudamiento = activoTotal > 0 ? (pasivoTotal / activoTotal) * 100 : 0
+      const roe = patrimonio > 0 ? (utilidadNeta / patrimonio) * 100 : 0
+      const roa = activoTotal > 0 ? (utilidadNeta / activoTotal) * 100 : 0
+      const margenNeto = ingresos > 0 ? (utilidadNeta / ingresos) * 100 : 0
+
+      setRatios({
+        liquidezCorriente: Math.min(liquidezCorriente, 999),
+        pruebaAcida: Math.min(pruebaAcida, 999),
+        endeudamiento: Math.min(endeudamiento, 100),
+        roe: Math.min(roe, 100),
+        roa: Math.min(roa, 100),
+        margenNeto: Math.min(margenNeto, 100),
+      })
+    } else {
+      // Sin transacciones: mostrar todo en cero
+      setBalance({ activos: { corriente: 0, noCorriente: 0, total: 0 }, pasivos: { corriente: 0, noCorriente: 0, total: 0 }, patrimonio: 0 })
+      setResultados({ ingresos: 0, costos: 0, utilidadBruta: 0, gastosOperativos: 0, utilidadOperativa: 0, utilidadNeta: 0 })
+      setFlujoCaja({ saldoInicial: 0, meses: [] })
+      setRatios({ liquidezCorriente: 0, pruebaAcida: 0, endeudamiento: 0, roe: 0, roa: 0, margenNeto: 0 })
     }
+
+    if (clientesCount !== null) setTotalClientes(clientesCount)
+    setLoading(false)
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <p className="text-gray-500 text-lg">Cargando reportes...</p>
+      </div>
+    )
   }
 
   return (
@@ -105,38 +210,42 @@ export default function Reportes() {
       {/* Flujo de Caja */}
       <div className="bg-white rounded-xl shadow-md p-6 mb-6">
         <h3 className="text-lg font-semibold text-[#1e3a5f] mb-4">💸 {t('reportes.flujo')}</h3>
-        <div className="overflow-x-auto mb-6">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-gray-200">
-                <th className="text-left py-2 px-3 text-gray-500">{t('reportes.mes')}</th>
-                <th className="text-right py-2 px-3 text-gray-500">{t('reportes.ingresos')}</th>
-                <th className="text-right py-2 px-3 text-gray-500">{t('reportes.egresos', { defaultValue: 'Egresos' })}</th>
-                <th className="text-right py-2 px-3 text-gray-500">{t('reportes.flujo_neto')}</th>
-                <th className="text-right py-2 px-3 text-gray-500">{t('reportes.saldo_acumulado')}</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr className="border-b border-gray-100 bg-gray-50">
-                <td className="py-2 px-3 font-medium text-gray-500">{t('reportes.saldo_inicial')}</td>
-                <td className="py-2 px-3 text-right"></td><td className="py-2 px-3 text-right"></td><td className="py-2 px-3 text-right"></td>
-                <td className="py-2 px-3 text-right font-bold text-[#1e3a5f]">${flujoCaja.saldoInicial.toFixed(2)}</td>
-              </tr>
-              {flujoCaja.meses.map((mes, i) => {
-                const fn = mes.ingresos - mes.egresos
-                return (
-                  <tr key={i} className="border-b border-gray-100 hover:bg-gray-50">
-                    <td className="py-2 px-3 font-medium text-[#1e3a5f]">{mes.mes}</td>
-                    <td className="py-2 px-3 text-right text-green-600">+${mes.ingresos.toFixed(2)}</td>
-                    <td className="py-2 px-3 text-right text-red-600">-${mes.egresos.toFixed(2)}</td>
-                    <td className={`py-2 px-3 text-right font-semibold ${fn >= 0 ? 'text-green-600' : 'text-red-600'}`}>{fn >= 0 ? '+' : ''}${fn.toFixed(2)}</td>
-                    <td className="py-2 px-3 text-right font-bold text-[#1e3a5f]">${mes.saldo.toFixed(2)}</td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
-        </div>
+        {flujoCaja.meses.length > 0 ? (
+          <div className="overflow-x-auto mb-6">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-gray-200">
+                  <th className="text-left py-2 px-3 text-gray-500">{t('reportes.mes')}</th>
+                  <th className="text-right py-2 px-3 text-gray-500">{t('reportes.ingresos')}</th>
+                  <th className="text-right py-2 px-3 text-gray-500">{t('reportes.egresos', { defaultValue: 'Egresos' })}</th>
+                  <th className="text-right py-2 px-3 text-gray-500">{t('reportes.flujo_neto')}</th>
+                  <th className="text-right py-2 px-3 text-gray-500">{t('reportes.saldo_acumulado')}</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr className="border-b border-gray-100 bg-gray-50">
+                  <td className="py-2 px-3 font-medium text-gray-500">{t('reportes.saldo_inicial')}</td>
+                  <td className="py-2 px-3 text-right"></td><td className="py-2 px-3 text-right"></td><td className="py-2 px-3 text-right"></td>
+                  <td className="py-2 px-3 text-right font-bold text-[#1e3a5f]">${flujoCaja.saldoInicial.toFixed(2)}</td>
+                </tr>
+                {flujoCaja.meses.map((mes, i) => {
+                  const fn = mes.ingresos - mes.egresos
+                  return (
+                    <tr key={i} className="border-b border-gray-100 hover:bg-gray-50">
+                      <td className="py-2 px-3 font-medium text-[#1e3a5f]">{mes.mes}</td>
+                      <td className="py-2 px-3 text-right text-green-600">+${mes.ingresos.toFixed(2)}</td>
+                      <td className="py-2 px-3 text-right text-red-600">-${mes.egresos.toFixed(2)}</td>
+                      <td className={`py-2 px-3 text-right font-semibold ${fn >= 0 ? 'text-green-600' : 'text-red-600'}`}>{fn >= 0 ? '+' : ''}${fn.toFixed(2)}</td>
+                      <td className="py-2 px-3 text-right font-bold text-[#1e3a5f]">${mes.saldo.toFixed(2)}</td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <p className="text-center text-gray-400 py-4">No hay datos suficientes para proyectar flujo de caja</p>
+        )}
       </div>
 
       {/* Ratios */}
