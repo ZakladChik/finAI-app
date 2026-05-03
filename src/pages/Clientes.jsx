@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { supabase } from '../lib/supabaseClient'
 
-const DEV_MODE = false
+const DEV_MODE = import.meta.env.DEV
 
 const datosLocales = [
   { id: 1, identificacion: '1712345678001', nombre: 'Ferretería Central (demo)', email: 'contacto@ferreteria.com', telefono: '0991234567' },
@@ -19,7 +19,13 @@ export default function Clientes() {
 
   const loadClientes = async () => {
     if (DEV_MODE) return
-    const { data } = await supabase.from('clientes').select('*').order('nombre')
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+    const { data } = await supabase
+      .from('clientes')
+      .select('*')
+      .eq('empresa_id', user.id)
+      .order('nombre')
     if (data) setClientes(data)
   }
 
@@ -39,9 +45,24 @@ export default function Clientes() {
       return
     }
 
-    await supabase.from('clientes').insert({ ...form, empresa_id: '00000000-0000-0000-0000-000000000000' })
-    setForm({ identificacion: '', nombre: '', email: '', telefono: '' })
-    loadClientes()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      setLoading(false)
+      return
+    }
+
+    const { error } = await supabase.from('clientes').insert({
+      identificacion: form.identificacion,
+      nombre: form.nombre,
+      email: form.email,
+      telefono: form.telefono,
+      empresa_id: user.id,
+    })
+
+    if (!error) {
+      setForm({ identificacion: '', nombre: '', email: '', telefono: '' })
+      loadClientes()
+    }
     setLoading(false)
   }
 

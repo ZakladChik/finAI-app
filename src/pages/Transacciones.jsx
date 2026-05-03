@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { supabase } from '../lib/supabaseClient'
 
-const DEV_MODE = false
+const DEV_MODE = import.meta.env.DEV
 
 const datosLocales = [
   { id: 1, tipo: 'ingreso', monto: 850.00, descripcion: 'Venta del día (demo)', fecha: '2026-05-01' },
@@ -22,7 +22,14 @@ export default function Transacciones() {
 
   const loadTransacciones = async () => {
     if (DEV_MODE) return
-    const { data } = await supabase.from('transacciones').select('*').order('fecha', { ascending: false }).limit(10)
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+    const { data } = await supabase
+      .from('transacciones')
+      .select('*')
+      .eq('empresa_id', user.id)
+      .order('fecha', { ascending: false })
+      .limit(10)
     if (data) setTransacciones(data)
   }
 
@@ -42,12 +49,24 @@ export default function Transacciones() {
       return
     }
 
-    await supabase.from('transacciones').insert({
-      tipo: form.tipo, monto: parseFloat(form.monto), descripcion: form.descripcion,
-      fecha: form.fecha, empresa_id: '00000000-0000-0000-0000-000000000000',
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      setLoading(false)
+      return
+    }
+
+    const { error } = await supabase.from('transacciones').insert({
+      tipo: form.tipo,
+      monto: parseFloat(form.monto),
+      descripcion: form.descripcion,
+      fecha: form.fecha,
+      empresa_id: user.id,
     })
-    setForm({ tipo: 'ingreso', monto: '', descripcion: '', fecha: new Date().toISOString().split('T')[0] })
-    loadTransacciones()
+
+    if (!error) {
+      setForm({ tipo: 'ingreso', monto: '', descripcion: '', fecha: new Date().toISOString().split('T')[0] })
+      loadTransacciones()
+    }
     setLoading(false)
   }
 
