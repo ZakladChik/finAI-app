@@ -1,14 +1,21 @@
 import { createContext, useContext, useState, useEffect, useMemo } from 'react'
 import { supabase } from '../lib/supabaseClient'
 
-const AuthContext = createContext()
+export const AuthContext = createContext()
 
 const DEV_MODE = import.meta.env.DEV
-const [user, setUser] = useState(DEV_MODE ? DEV_USER : null)
-const [loading, setLoading] = useState(DEV_MODE ? false : true)
+
+const DEV_USER = {
+  id: 'dev-user-123',
+  email: 'dev@finAI.local',
+  role: 'authenticated',
+}
+
+export function AuthProvider({ children }) {
+  const [user, setUser] = useState(DEV_MODE ? DEV_USER : null)
+  const [loading, setLoading] = useState(DEV_MODE ? false : true)
 
   useEffect(() => {
-    // Si estamos en modo desarrollo, no hacemos nada
     if (DEV_MODE) return
 
     supabase.auth.getSession().then(({ data: { session } }) => {
