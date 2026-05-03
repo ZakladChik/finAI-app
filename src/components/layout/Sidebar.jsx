@@ -17,6 +17,7 @@ export default function Sidebar({ activePage, onNavigate, userEmail, onLogout })
     <aside className="w-64 min-h-screen bg-[#1e3a5f] text-white flex flex-col p-4">
       {/* Logo */}
       <div className="mb-6 text-center">
+        <img src="logo-fondo-azul.png" alt="FinAI logo" className="w-14 h-14 mx-auto mb-2 rounded-lg" />
         <h1 className="text-xl font-bold text-[#d4af37]">{t('app.name')}</h1>
         <p className="text-xs text-gray-300">{t('app.subtitle')}</p>
       </div>

@@ -30,6 +30,7 @@ export default function Register({ onNavigate }) {
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
       <div className="bg-white rounded-2xl shadow-lg p-8 w-full max-w-md">
         <div className="text-center mb-6">
+          <img src="logo-fondo-blanco.png" alt="FinAI logo" className="w-20 h-20 mx-auto mb-3 rounded-xl shadow-md" />
           <h1 className="text-2xl font-bold text-[#1e3a5f]">{t('auth.register_title')}</h1>
           <p className="text-sm text-gray-500">{t('auth.register_subtitle')}</p>
         </div>
