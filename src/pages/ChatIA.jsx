@@ -1,16 +1,83 @@
 // src/pages/ChatIA.jsx
 import { useState, useRef, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
-import { sendMessageToGroq } from '../services/groqService'
+import { sendMessageToGroq, setContextoFinanciero } from '../services/groqService'
+import { supabase } from '../lib/supabaseClient'
+
+const DEV_MODE = import.meta.env.DEV
 
 export default function ChatIA() {
   const { t, i18n } = useTranslation()
   const [messages, setMessages] = useState([
-    { role: 'assistant', content: '¡Hola! Soy ContaIA, tu contador virtual ecuatoriano. Pregúntame sobre IVA, facturación, balances o cualquier duda financiera.' },
+    { role: 'assistant', content: '¡Hola! Soy ContaIA, tu contador virtual ecuatoriano. Puedes preguntarme sobre IVA, facturación, balances o pedirme que analice tus finanzas. ¿En qué puedo ayudarte?' },
   ])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
   const chatEndRef = useRef(null)
+
+  // Cargar datos financieros reales y pasarlos al contexto de la IA
+  useEffect(() => {
+    loadFinancialContext()
+  }, [])
+
+  const loadFinancialContext = async () => {
+    if (DEV_MODE) {
+      // Datos simulados para desarrollo
+      setContextoFinanciero({
+        ingresos: '2,800.00',
+        egresos: '460.00',
+        balance: '2,340.00',
+        iva: '420.00',
+        clientes: 3,
+        margen: '28.6',
+        utilidadNeta: '800.00',
+      })
+      return
+    }
+
+    // Cargar datos reales desde Supabase
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+
+    const { data: transacciones } = await supabase
+      .from('transacciones')
+      .select('*')
+      .eq('empresa_id', user.id)
+
+    const { count: clientesCount } = await supabase
+      .from('clientes')
+      .select('*', { count: 'exact', head: true })
+      .eq('empresa_id', user.id)
+
+    if (transacciones && transacciones.length > 0) {
+      const ingresos = transacciones.filter(t => t.tipo === 'ingreso').reduce((s, t) => s + t.monto, 0)
+      const egresos = transacciones.filter(t => t.tipo === 'egreso').reduce((s, t) => s + t.monto, 0)
+      const balance = ingresos - egresos
+      const iva = ingresos * 0.15
+      const margen = ingresos > 0 ? ((balance / ingresos) * 100).toFixed(1) : '0.0'
+
+      setContextoFinanciero({
+        ingresos: ingresos.toFixed(2),
+        egresos: egresos.toFixed(2),
+        balance: balance.toFixed(2),
+        iva: iva.toFixed(2),
+        clientes: clientesCount || 0,
+        margen: margen,
+        utilidadNeta: balance.toFixed(2),
+      })
+    } else {
+      // Sin transacciones: pasar datos en cero
+      setContextoFinanciero({
+        ingresos: '0.00',
+        egresos: '0.00',
+        balance: '0.00',
+        iva: '0.00',
+        clientes: 0,
+        margen: '0.0',
+        utilidadNeta: '0.00',
+      })
+    }
+  }
 
   useEffect(() => { chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [messages])
 
