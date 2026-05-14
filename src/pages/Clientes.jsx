@@ -16,6 +16,7 @@ export default function Clientes() {
   const [clientes, setClientes] = useState(DEV_MODE ? datosLocales : [])
   const [form, setForm] = useState({ identificacion: '', nombre: '', email: '', telefono: '' })
   const [loading, setLoading] = useState(false)
+  const [clienteSeleccionado, setClienteSeleccionado] = useState(null) // Para el modal
 
   const loadClientes = async () => {
     if (DEV_MODE) return
@@ -108,6 +109,7 @@ export default function Clientes() {
                 <th className="text-left py-2 px-3 text-gray-500">{t('clientes.nombre').replace(' *', '')}</th>
                 <th className="text-left py-2 px-3 text-gray-500">{t('clientes.email')}</th>
                 <th className="text-left py-2 px-3 text-gray-500">{t('clientes.telefono')}</th>
+                <th className="text-center py-2 px-3 text-gray-500">⚙️</th>
               </tr>
             </thead>
             <tbody>
@@ -117,13 +119,63 @@ export default function Clientes() {
                   <td className="py-2 px-3 font-medium text-[#1e3a5f]">{c.nombre}</td>
                   <td className="py-2 px-3 text-gray-600">{c.email || '-'}</td>
                   <td className="py-2 px-3 text-gray-600">{c.telefono || '-'}</td>
+                  <td className="py-2 px-3 text-center">
+                    <button
+                      onClick={() => setClienteSeleccionado(c)}
+                      className="text-gray-400 hover:text-[#1e3a5f] transition-colors"
+                      title="Ver más información"
+                    >
+                      ☁️⋯
+                    </button>
+                  </td>
                 </tr>
               ))}
-              {clientes.length === 0 && <tr><td colSpan={4} className="text-center py-4 text-gray-400">{t('clientes.no_hay')}</td></tr>}
+              {clientes.length === 0 && <tr><td colSpan={5} className="text-center py-4 text-gray-400">{t('clientes.no_hay')}</td></tr>}
             </tbody>
           </table>
         </div>
       </div>
+
+      {/* Modal de información del cliente */}
+      {clienteSeleccionado && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-md">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-[#1e3a5f]">☁️ Información del cliente</h3>
+              <button
+                onClick={() => setClienteSeleccionado(null)}
+                className="text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="space-y-3">
+              <div>
+                <p className="text-sm text-gray-500">{t('clientes.ruc').replace(' *', '')}</p>
+                <p className="font-medium text-[#1e3a5f]">{clienteSeleccionado.identificacion}</p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-500">{t('clientes.nombre').replace(' *', '')}</p>
+                <p className="font-medium text-[#1e3a5f]">{clienteSeleccionado.nombre}</p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-500">{t('clientes.email')}</p>
+                <p className="font-medium text-[#1e3a5f]">{clienteSeleccionado.email || '-'}</p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-500">{t('clientes.telefono')}</p>
+                <p className="font-medium text-[#1e3a5f]">{clienteSeleccionado.telefono || '-'}</p>
+              </div>
+            </div>
+            <button
+              onClick={() => setClienteSeleccionado(null)}
+              className="mt-4 w-full bg-[#1e3a5f] text-white py-2 rounded-lg hover:bg-[#2a4a6d] transition-colors"
+            >
+              Cerrar
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
