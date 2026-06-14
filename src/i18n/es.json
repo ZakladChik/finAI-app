@@ -10,6 +10,7 @@
     "clientes": "Clientes",
     "reportes": "Reportes",
     "chat_ia": "Chat IA",
+    "notificaciones": "Notificaciones",
     "logout": "Cerrar sesión"
   },
   "dashboard": {
@@ -158,5 +159,12 @@
     "success_title": "¡Registro Exitoso!",
     "success_message": "Tu empresa ha sido registrada. Bienvenido a FinAI.",
     "redirecting": "Redirigiendo al panel principal..."
+  },
+  "notificaciones": {
+    "title": "Notificaciones",
+    "marcar_todas": "Marcar todas como leídas",
+    "leida": "Leída",
+    "no_hay": "No hay notificaciones nuevas",
+    "cargando": "Cargando notificaciones..."
   }
 }

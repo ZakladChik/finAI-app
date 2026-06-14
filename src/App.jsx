@@ -8,6 +8,7 @@ import Transacciones from './pages/Transacciones'
 import Clientes from './pages/Clientes'
 import Reportes from './pages/Reportes'
 import ChatIA from './pages/ChatIA'
+import Notificaciones from './pages/Notificaciones' // ← NUEVO
 import Login from './pages/Login'
 import Register from './pages/Register'
 import SetupCompany from './pages/SetupCompany'
@@ -71,6 +72,7 @@ function AppContent() {
       case '/clientes': return <Clientes />
       case '/reportes': return <Reportes />
       case '/chat': return <ChatIA />
+      case '/notificaciones': return <Notificaciones />  // ← NUEVO
       default: return <Dashboard />
     }
   }
