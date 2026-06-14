@@ -120,43 +120,43 @@
     "es": "Español",
     "en": "English",
     "ru": "Русский"
-  }
+  },
   "setup_company": {
-  "title": "Register your Company",
-  "subtitle": "Fill in your business data to start using FinAI",
-  "razon_social": "Company Name",
-  "razon_social_placeholder": "E.g. ABC Commercial S.A.",
-  "nombre_comercial": "Trade Name",
-  "nombre_comercial_placeholder": "E.g. ABC Store",
-  "ruc": "RUC (Tax ID)",
-  "ruc_placeholder": "13 digits",
-  "tipo_contribuyente": "Taxpayer Type",
-  "tipo_contribuyente_options": {
-    "": "Select...",
-    "Persona Natural": "Natural Person",
-    "Sociedad": "Company",
-    "RIMPE": "RIMPE"
-  },
-  "regimen_iva": "VAT Regime",
-  "regimen_iva_options": {
-    "": "Select...",
-    "General (15%)": "General (15%)",
-    "Simplificado": "Simplified",
-    "Exento": "Exempt"
-  },
-  "sector": "Sector",
-  "direccion": "Address",
-  "provincia": "Province",
-  "canton": "Canton",
-  "email_contacto": "Company Email",
-  "telefono": "Phone",
-  "nombre_dueno": "Owner Name",
-  "cedula_dueno": "Owner ID",
-  "btn_save": "Complete Registration",
-  "saving": "Saving...",
-  "error_required": "Please complete the required fields: Company Name, RUC, Owner Name and ID.",
-  "success_title": "Registration Successful!",
-  "success_message": "Your company has been registered. Welcome to FinAI.",
-  "redirecting": "Redirecting to dashboard..."
-}
+    "title": "Register your Company",
+    "subtitle": "Fill in your business data to start using FinAI",
+    "razon_social": "Company Name",
+    "razon_social_placeholder": "E.g. ABC Commercial S.A.",
+    "nombre_comercial": "Trade Name",
+    "nombre_comercial_placeholder": "E.g. ABC Store",
+    "ruc": "RUC (Tax ID)",
+    "ruc_placeholder": "13 digits",
+    "tipo_contribuyente": "Taxpayer Type",
+    "tipo_contribuyente_options": {
+      "": "Select...",
+      "Persona Natural": "Natural Person",
+      "Sociedad": "Company",
+      "RIMPE": "RIMPE"
+    },
+    "regimen_iva": "VAT Regime",
+    "regimen_iva_options": {
+      "": "Select...",
+      "General (15%)": "General (15%)",
+      "Simplificado": "Simplified",
+      "Exento": "Exempt"
+    },
+    "sector": "Sector",
+    "direccion": "Address",
+    "provincia": "Province",
+    "canton": "Canton",
+    "email_contacto": "Company Email",
+    "telefono": "Phone",
+    "nombre_dueno": "Owner Name",
+    "cedula_dueno": "Owner ID",
+    "btn_save": "Complete Registration",
+    "saving": "Saving...",
+    "error_required": "Please complete the required fields: Company Name, RUC, Owner Name and ID.",
+    "success_title": "Registration Successful!",
+    "success_message": "Your company has been registered. Welcome to FinAI.",
+    "redirecting": "Redirecting to dashboard..."
+  }
 }

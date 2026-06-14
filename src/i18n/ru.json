@@ -120,43 +120,43 @@
     "es": "Español",
     "en": "English",
     "ru": "Русский"
-  }
+  },
   "setup_company": {
-  "title": "Регистрация компании",
-  "subtitle": "Заполните данные вашего бизнеса, чтобы начать использовать FinAI",
-  "razon_social": "Название компании",
-  "razon_social_placeholder": "Напр. Comercial ABC S.A.",
-  "nombre_comercial": "Коммерческое название",
-  "nombre_comercial_placeholder": "Напр. Tienda ABC",
-  "ruc": "РУК (налоговый номер)",
-  "ruc_placeholder": "13 цифр",
-  "tipo_contribuyente": "Тип налогоплательщика",
-  "tipo_contribuyente_options": {
-    "": "Выберите...",
-    "Persona Natural": "Физическое лицо",
-    "Sociedad": "Юридическое лицо",
-    "RIMPE": "RIMPE"
-  },
-  "regimen_iva": "Режим НДС",
-  "regimen_iva_options": {
-    "": "Выберите...",
-    "General (15%)": "Общий (15%)",
-    "Simplificado": "Упрощённый",
-    "Exento": "Освобождённый"
-  },
-  "sector": "Сектор",
-  "direccion": "Адрес",
-  "provincia": "Провинция",
-  "canton": "Кантон",
-  "email_contacto": "Email компании",
-  "telefono": "Телефон",
-  "nombre_dueno": "Имя владельца",
-  "cedula_dueno": "Удостоверение личности владельца",
-  "btn_save": "Завершить регистрацию",
-  "saving": "Сохранение...",
-  "error_required": "Пожалуйста, заполните обязательные поля: Название компании, РУК, Имя владельца и Удостоверение личности.",
-  "success_title": "Регистрация успешна!",
-  "success_message": "Ваша компания зарегистрирована. Добро пожаловать в FinAI.",
-  "redirecting": "Перенаправление в панель управления..."
-}
+    "title": "Регистрация компании",
+    "subtitle": "Заполните данные вашего бизнеса, чтобы начать использовать FinAI",
+    "razon_social": "Название компании",
+    "razon_social_placeholder": "Напр. Comercial ABC S.A.",
+    "nombre_comercial": "Коммерческое название",
+    "nombre_comercial_placeholder": "Напр. Tienda ABC",
+    "ruc": "РУК (налоговый номер)",
+    "ruc_placeholder": "13 цифр",
+    "tipo_contribuyente": "Тип налогоплательщика",
+    "tipo_contribuyente_options": {
+      "": "Выберите...",
+      "Persona Natural": "Физическое лицо",
+      "Sociedad": "Юридическое лицо",
+      "RIMPE": "RIMPE"
+    },
+    "regimen_iva": "Режим НДС",
+    "regimen_iva_options": {
+      "": "Выберите...",
+      "General (15%)": "Общий (15%)",
+      "Simplificado": "Упрощённый",
+      "Exento": "Освобождённый"
+    },
+    "sector": "Сектор",
+    "direccion": "Адрес",
+    "provincia": "Провинция",
+    "canton": "Кантон",
+    "email_contacto": "Email компании",
+    "telefono": "Телефон",
+    "nombre_dueno": "Имя владельца",
+    "cedula_dueno": "Удостоверение личности владельца",
+    "btn_save": "Завершить регистрацию",
+    "saving": "Сохранение...",
+    "error_required": "Пожалуйста, заполните обязательные поля: Название компании, РУК, Имя владельца и Удостоверение личности.",
+    "success_title": "Регистрация успешна!",
+    "success_message": "Ваша компания зарегистрирована. Добро пожаловать в FinAI.",
+    "redirecting": "Перенаправление в панель управления..."
+  }
 }

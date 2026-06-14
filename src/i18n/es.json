@@ -120,43 +120,43 @@
     "es": "Español",
     "en": "English",
     "ru": "Русский"
-  }
+  },
   "setup_company": {
-  "title": "Registro de tu Empresa",
-  "subtitle": "Completa los datos de tu negocio para empezar a usar FinAI",
-  "razon_social": "Razón Social",
-  "razon_social_placeholder": "Ej: Comercial ABC S.A.",
-  "nombre_comercial": "Nombre Comercial",
-  "nombre_comercial_placeholder": "Ej: Tienda ABC",
-  "ruc": "RUC",
-  "ruc_placeholder": "13 dígitos",
-  "tipo_contribuyente": "Tipo de Contribuyente",
-  "tipo_contribuyente_options": {
-    "": "Seleccionar...",
-    "Persona Natural": "Persona Natural",
-    "Sociedad": "Sociedad",
-    "RIMPE": "RIMPE"
-  },
-  "regimen_iva": "Régimen IVA",
-  "regimen_iva_options": {
-    "": "Seleccionar...",
-    "General (15%)": "General (15%)",
-    "Simplificado": "Simplificado",
-    "Exento": "Exento"
-  },
-  "sector": "Sector",
-  "direccion": "Dirección",
-  "provincia": "Provincia",
-  "canton": "Cantón",
-  "email_contacto": "Email de la empresa",
-  "telefono": "Teléfono",
-  "nombre_dueno": "Nombre del Dueño",
-  "cedula_dueno": "Cédula del Dueño",
-  "btn_save": "Completar Registro",
-  "saving": "Guardando...",
-  "error_required": "Por favor completa los campos obligatorios: Razón social, RUC, Nombre del dueño y Cédula.",
-  "success_title": "¡Registro Exitoso!",
-  "success_message": "Tu empresa ha sido registrada. Bienvenido a FinAI.",
-  "redirecting": "Redirigiendo al panel principal..."
-}
+    "title": "Registro de tu Empresa",
+    "subtitle": "Completa los datos de tu negocio para empezar a usar FinAI",
+    "razon_social": "Razón Social",
+    "razon_social_placeholder": "Ej: Comercial ABC S.A.",
+    "nombre_comercial": "Nombre Comercial",
+    "nombre_comercial_placeholder": "Ej: Tienda ABC",
+    "ruc": "RUC",
+    "ruc_placeholder": "13 dígitos",
+    "tipo_contribuyente": "Tipo de Contribuyente",
+    "tipo_contribuyente_options": {
+      "": "Seleccionar...",
+      "Persona Natural": "Persona Natural",
+      "Sociedad": "Sociedad",
+      "RIMPE": "RIMPE"
+    },
+    "regimen_iva": "Régimen IVA",
+    "regimen_iva_options": {
+      "": "Seleccionar...",
+      "General (15%)": "General (15%)",
+      "Simplificado": "Simplificado",
+      "Exento": "Exento"
+    },
+    "sector": "Sector",
+    "direccion": "Dirección",
+    "provincia": "Provincia",
+    "canton": "Cantón",
+    "email_contacto": "Email de la empresa",
+    "telefono": "Teléfono",
+    "nombre_dueno": "Nombre del Dueño",
+    "cedula_dueno": "Cédula del Dueño",
+    "btn_save": "Completar Registro",
+    "saving": "Guardando...",
+    "error_required": "Por favor completa los campos obligatorios: Razón social, RUC, Nombre del dueño y Cédula.",
+    "success_title": "¡Registro Exitoso!",
+    "success_message": "Tu empresa ha sido registrada. Bienvenido a FinAI.",
+    "redirecting": "Redirigiendo al panel principal..."
+  }
 }
