@@ -2,6 +2,7 @@
 import { useState } from 'react'
 import { supabase } from '../lib/supabaseClient'
 import { useAuth } from '../context/AuthContext'
+import LanguageSwitcher from '../components/common/LanguageSwitcher'
 
 export default function SetupCompany({ onComplete }) {
   const { user } = useAuth()
@@ -36,7 +37,7 @@ export default function SetupCompany({ onComplete }) {
     setError('')
 
     const { error: insertError } = await supabase.from('empresas').insert({
-      empresas_id: user.id,          // ← Vincula la empresa al usuario autenticado
+      empresas_id: user.id,
       razon_social: form.razon_social,
       nombre_comercial: form.nombre_comercial,
       ruc: form.ruc,
@@ -67,7 +68,12 @@ export default function SetupCompany({ onComplete }) {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#1e3a5f] via-[#162d4a] to-[#0f1e33] p-4">
-      <div className="bg-white rounded-3xl shadow-2xl p-10 w-full max-w-2xl">
+      <div className="relative bg-white rounded-3xl shadow-2xl p-10 w-full max-w-2xl">
+        {/* Selector de idioma */}
+        <div className="absolute top-4 right-4">
+          <LanguageSwitcher />
+        </div>
+
         {!success ? (
           <>
             <div className="text-center mb-8">
