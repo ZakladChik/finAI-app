@@ -8,6 +8,7 @@ const DEV_MODE = import.meta.env.DEV
 export default function Reportes() {
   const { t } = useTranslation()
   const [loading, setLoading] = useState(true)
+  const [empresaId, setEmpresaId] = useState(null)
   const [balance, setBalance] = useState({
     activos: { corriente: 0, noCorriente: 0, total: 0 },
     pasivos: { corriente: 0, noCorriente: 0, total: 0 },
@@ -22,21 +23,34 @@ export default function Reportes() {
     liquidezCorriente: 0, pruebaAcida: 0, endeudamiento: 0,
     roe: 0, roa: 0, margenNeto: 0,
   })
-  const [totalClientes, setTotalClientes] = useState(0)
 
-  useEffect(() => { loadData() }, [])
+  // Obtener el id de la empresa al montar el componente
+  useEffect(() => {
+    const getEmpresaId = async () => {
+      if (DEV_MODE) return
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+      const { data: empresa } = await supabase
+        .from('empresas')
+        .select('id')
+        .eq('empresas_id', user.id)
+        .single()
+      if (empresa) {
+        setEmpresaId(empresa.id)
+      }
+    }
+    getEmpresaId()
+  }, [])
 
   const loadData = async () => {
     setLoading(true)
 
-    // Obtener usuario autenticado
     const { data: { user } } = await supabase.auth.getUser()
-    if (!user) {
+    if (!user || !empresaId) {
       setLoading(false)
       return
     }
 
-    // Modo demo: datos simulados
     if (DEV_MODE) {
       setBalance({ activos: { corriente: 15000, noCorriente: 25000, total: 40000 }, pasivos: { corriente: 5000, noCorriente: 10000, total: 15000 }, patrimonio: 25000 })
       setResultados({ ingresos: 2800, costos: 1200, utilidadBruta: 1600, gastosOperativos: 800, utilidadOperativa: 800, utilidadNeta: 800 })
@@ -49,31 +63,26 @@ export default function Reportes() {
         { mes: 'Octubre 2026', ingresos: 4800, egresos: 2800, saldo: 15100 },
       ]})
       setRatios({ liquidezCorriente: 3.0, pruebaAcida: 2.2, endeudamiento: 37.5, roe: 32.0, roa: 20.0, margenNeto: 28.6 })
-      setTotalClientes(3)
       setLoading(false)
       return
     }
 
-    // === MODO REAL: Cargar datos desde Supabase ===
-
-    // 1. Obtener todas las transacciones del usuario
+    // === MODO REAL: Cargar datos desde Supabase usando empresaId ===
     const { data: transacciones } = await supabase
       .from('transacciones')
       .select('*')
-      .eq('empresa_id', user.id)
+      .eq('empresa_id', empresaId)
 
-    // 2. Obtener total de clientes
     const { count: clientesCount } = await supabase
       .from('clientes')
       .select('*', { count: 'exact', head: true })
-      .eq('empresa_id', user.id)
+      .eq('empresa_id', empresaId)
 
     if (transacciones && transacciones.length > 0) {
       const ingresos = transacciones.filter(t => t.tipo === 'ingreso').reduce((s, t) => s + t.monto, 0)
       const egresos = transacciones.filter(t => t.tipo === 'egreso').reduce((s, t) => s + t.monto, 0)
       const utilidadNeta = ingresos - egresos
 
-      // Balance General
       const activosCorriente = ingresos
       const pasivosCorriente = egresos
       setBalance({
@@ -82,7 +91,6 @@ export default function Reportes() {
         patrimonio: utilidadNeta,
       })
 
-      // Estado de Resultados
       setResultados({
         ingresos,
         costos: egresos * 0.4,
@@ -92,11 +100,9 @@ export default function Reportes() {
         utilidadNeta,
       })
 
-      // Flujo de Caja Proyectado (6 meses)
       const mesesNombres = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
       const hoy = new Date()
       const saldoInicial = utilidadNeta
-      const flujoMensual = utilidadNeta > 0 ? utilidadNeta * 0.3 : utilidadNeta * 0.1
       const mesesFlujo = []
       let saldoAcumulado = saldoInicial
 
@@ -115,7 +121,6 @@ export default function Reportes() {
       }
       setFlujoCaja({ saldoInicial, meses: mesesFlujo })
 
-      // Ratios Financieros
       const activoTotal = activosCorriente || 1
       const pasivoTotal = pasivosCorriente
       const patrimonio = utilidadNeta || 1
@@ -135,16 +140,21 @@ export default function Reportes() {
         margenNeto: Math.min(margenNeto, 100),
       })
     } else {
-      // Sin transacciones: mostrar todo en cero
       setBalance({ activos: { corriente: 0, noCorriente: 0, total: 0 }, pasivos: { corriente: 0, noCorriente: 0, total: 0 }, patrimonio: 0 })
       setResultados({ ingresos: 0, costos: 0, utilidadBruta: 0, gastosOperativos: 0, utilidadOperativa: 0, utilidadNeta: 0 })
       setFlujoCaja({ saldoInicial: 0, meses: [] })
       setRatios({ liquidezCorriente: 0, pruebaAcida: 0, endeudamiento: 0, roe: 0, roa: 0, margenNeto: 0 })
     }
 
-    if (clientesCount !== null) setTotalClientes(clientesCount)
     setLoading(false)
   }
+
+  useEffect(() => {
+    if (empresaId) {
+      loadData()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [empresaId])
 
   if (loading) {
     return (
