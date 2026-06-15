@@ -19,40 +19,61 @@ export default function Transacciones() {
     monto: '',
     descripcion: '',
     fecha: new Date().toISOString().split('T')[0],
-    archivo: null, // NUEVO: nombre del archivo seleccionado (para mostrar)
+    archivo: null,
   })
   const [loading, setLoading] = useState(false)
-  const [uploading, setUploading] = useState(false) // NUEVO: para spinner de subida
+  const [uploading, setUploading] = useState(false)
+  const [empresaId, setEmpresaId] = useState(null)
   const fileInputRef = useRef(null)
+
+  // Obtener el id de la empresa al montar el componente
+  useEffect(() => {
+    const getEmpresaId = async () => {
+      if (DEV_MODE) return
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+      const { data: empresa } = await supabase
+        .from('empresas')
+        .select('id')
+        .eq('empresas_id', user.id)
+        .single()
+      if (empresa) {
+        setEmpresaId(empresa.id)
+      }
+    }
+    getEmpresaId()
+  }, [])
 
   const loadTransacciones = async () => {
     if (DEV_MODE) return
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
+    if (!empresaId) return
     const { data } = await supabase
       .from('transacciones')
       .select('*')
-      .eq('empresa_id', user.id)
+      .eq('empresa_id', empresaId)
       .order('fecha', { ascending: false })
       .limit(10)
     if (data) setTransacciones(data)
   }
 
-  useEffect(() => { loadTransacciones() }, [])
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (empresaId) loadTransacciones()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [empresaId])
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value })
 
-  // NUEVO: Manejar la selección del archivo
   const handleFileSelect = (e) => {
     const file = e.target.files[0]
     if (file) {
-      setForm({ ...form, archivo: file }) // guardamos el objeto File
+      setForm({ ...form, archivo: file })
     }
   }
 
-  // NUEVO: Subir archivo a Supabase y devolver la URL pública
   const uploadFile = async (file, userId) => {
     const fileName = `${userId}_${Date.now()}_${file.name}`
+    // eslint-disable-next-line no-unused-vars
     const { data, error } = await supabase.storage
       .from('comprobantes')
       .upload(fileName, file, {
@@ -60,7 +81,6 @@ export default function Transacciones() {
         upsert: false,
       })
     if (error) throw error
-    // Obtener URL pública
     const { data: urlData } = supabase.storage
       .from('comprobantes')
       .getPublicUrl(fileName)
@@ -70,6 +90,10 @@ export default function Transacciones() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     if (!form.monto || !form.descripcion) return
+    if (!empresaId) {
+      alert('No se encontró la empresa asociada a tu cuenta.')
+      return
+    }
     setLoading(true)
 
     if (DEV_MODE) {
@@ -85,7 +109,6 @@ export default function Transacciones() {
       return
     }
 
-    // NUEVO: Subir archivo si existe
     let archivoUrl = null
     if (form.archivo) {
       setUploading(true)
@@ -106,14 +129,17 @@ export default function Transacciones() {
       monto: parseFloat(form.monto),
       descripcion: form.descripcion,
       fecha: form.fecha,
-      empresa_id: user.id,
-      archivo_url: archivoUrl, // NUEVO
+      empresa_id: empresaId,
+      archivo_url: archivoUrl,
     })
 
     if (!error) {
       setForm({ tipo: 'ingreso', monto: '', descripcion: '', fecha: new Date().toISOString().split('T')[0], archivo: null })
-      if (fileInputRef.current) fileInputRef.current.value = '' // limpiar input
+      if (fileInputRef.current) fileInputRef.current.value = ''
       loadTransacciones()
+    } else {
+      console.error('Error al insertar transacción:', error)
+      alert('Error al guardar la transacción. Revisa la consola para más detalles.')
     }
     setLoading(false)
   }
@@ -129,7 +155,6 @@ export default function Transacciones() {
         {DEV_MODE && <span className="bg-yellow-100 text-yellow-700 text-xs px-2 py-1 rounded-full">{t('dashboard.modo_demo')}</span>}
       </div>
 
-      {/* Totales */}
       <div className="grid grid-cols-3 gap-4 mb-6">
         <div className="bg-green-50 rounded-xl p-4 text-center">
           <p className="text-sm text-green-600">{t('transacciones.ingresos')}</p>
@@ -145,11 +170,9 @@ export default function Transacciones() {
         </div>
       </div>
 
-      {/* Formulario */}
       <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-md p-6 mb-6">
         <h3 className="text-lg font-semibold text-[#1e3a5f] mb-4">{t('transacciones.nueva')}</h3>
-        
-        {/* NUEVO: Sección de archivo adjunto */}
+
         <div className="mb-4">
           <label className="block text-sm text-gray-600 mb-1">📎 Adjuntar comprobante (opcional)</label>
           <div className="flex items-center gap-3">
@@ -193,7 +216,6 @@ export default function Transacciones() {
         </button>
       </form>
 
-      {/* Tabla de transacciones */}
       <div className="bg-white rounded-xl shadow-md p-6">
         <h3 className="text-lg font-semibold text-[#1e3a5f] mb-4">{t('transacciones.ultimas')}</h3>
         <div className="overflow-x-auto">
@@ -204,7 +226,7 @@ export default function Transacciones() {
                 <th className="text-left py-2 px-3 text-gray-500">{t('transacciones.tipo')}</th>
                 <th className="text-left py-2 px-3 text-gray-500">{t('transacciones.descripcion')}</th>
                 <th className="text-right py-2 px-3 text-gray-500">{t('transacciones.monto')}</th>
-                <th className="text-center py-2 px-3 text-gray-500">📎</th> {/* NUEVO: columna de archivo */}
+                <th className="text-center py-2 px-3 text-gray-500">📎</th>
               </tr>
             </thead>
             <tbody>
